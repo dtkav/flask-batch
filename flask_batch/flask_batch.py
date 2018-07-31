@@ -12,13 +12,6 @@ HEADERS = {"Content-Type": "application/json"}
 CRLF = '\r\n'
 
 
-__author__ = 'Daniel Grossmann-Kavanagh'
-__email__ = 'me@danielgk.com'
-__url__ = 'https://github.com/dtkav/flask-batch'
-__version__ = '0.0.0'
-__license__ = 'MIT'
-
-
 class MIMEApplicationHTTPRequest(MIMEApplication, object):
 
     def __init__(self, method, path, headers, body):
@@ -61,15 +54,10 @@ def strip_headers(bb):
     return bb.split(b'\n\n', 1)[1]
 
 
-def parse_multi(content_type, data):
+def parse_multi(content_type, multi):
     boundary = content_type.split("=", 1)[1][1:-1].encode("ascii")
-    datas = data.split(boundary)[1:]
-    for d in datas[:-1]:
-        try:
-            d = strip_headers(d)
-        except IndexError:
-            continue
-    return datas
+    payloads = multi.split(boundary)[1:-1]
+    return [strip_headers(payload) for payload in payloads]
 
 
 def prepare_batch_response(responses):
@@ -93,10 +81,6 @@ def prepare_batch_response(responses):
     return dict(batch._headers), body
 
 
-def add_batch_route(app, route='/batch', name='batch'):
-    return app.add_url_rule(route, name, batch, methods=["POST"])
-
-
 def batch():
     """
     Execute multiple requests, submitted as a batch.
@@ -109,13 +93,12 @@ def batch():
     if not content_type.startswith("multipart/mixed"):
         abort(400)
 
-    datas = parse_multi(content_type, data)
-    for d in datas:
-        try:
-            d = strip_headers(d)
-        except IndexError:
-            continue
-        environ = werkzeug_raw.environ(d)
+    multi = parse_multi(content_type, data)
+    for payload in multi:
+        environ = werkzeug_raw.environ(payload)
+
+        # ensure we only issue requests against the same host
+        # as the original request
         environ.update({"SERVER_NAME": request.environ["SERVER_NAME"]})
         environ.update({"SERVER_PORT": request.environ["SERVER_PORT"]})
 
@@ -142,60 +125,3 @@ def batch():
         abort(500)
 
     return body, 200, headers
-
-
-#class BatchRoute(object):
-#
-#    def __init__(self, app=None):
-#        self.app = app
-#        if app is not None:
-#            self.init_app(app)
-#
-#    def init_app(self, app):
-#        app.add_url_rule('/batch', 'batch', self.batch, methods=["POST"])
-#
-#    def batch(self):
-#        """
-#        Execute multiple requests, submitted as a batch.
-#        """
-#        responses = []
-#        app = self.app
-#        data = request.stream.read()
-#        body = None
-#        content_type = request.environ["CONTENT_TYPE"]
-#        if not content_type.startswith("multipart/mixed"):
-#            abort(400)
-#
-#        datas = parse_multi(content_type, data)
-#        for d in datas:
-#            try:
-#                d = strip_headers(d)
-#            except IndexError:
-#                continue
-#            environ = werkzeug_raw.environ(d)
-#            environ.update({"SERVER_NAME": request.environ["SERVER_NAME"]})
-#            environ.update({"SERVER_PORT": request.environ["SERVER_PORT"]})
-#
-#            with app.request_context(environ):
-#                try:
-#                    rv = app.preprocess_request()
-#                    if rv is None:
-#                        rv = app.dispatch_request()
-#
-#                except Exception as e:
-#                    rv = app.handle_user_exception(e)
-#
-#                response = app.make_response(rv)
-#                response = app.process_response(response)
-#
-#            responses.append((
-#                response.status,
-#                response.headers,
-#                response.json
-#            ))
-#            headers, body = prepare_batch_response(responses)
-#
-#        if body is None:
-#            abort(500)
-#
-#        return body, 200, headers

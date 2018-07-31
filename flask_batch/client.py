@@ -5,7 +5,7 @@ import io
 
 from email.generator import Generator
 from email.mime.multipart import MIMEMultipart
-from flask_batch import parse_multi, MIMEApplicationHTTP
+from flask_batch.flask_batch import parse_multi, MIMEApplicationHTTPRequest
 from requests.models import Response
 from requests import Session
 
@@ -33,7 +33,9 @@ class Batching(Session):
         self.close()
 
     def finalize(self):
-        pass
+        headers, body = prepare_batch_request(self._batched_requests)
+        import ipdb
+        ipdb.set_trace()
         # actually send request
         # match responses with responses
 
@@ -45,7 +47,7 @@ def prepare_batch_request(requests):
     batch = MIMEMultipart()
 
     for method, uri, headers, body in requests:
-        subrequest = MIMEApplicationHTTP(method, uri, headers, body)
+        subrequest = MIMEApplicationHTTPRequest(method, uri, headers, body)
         batch.attach(subrequest)
 
     buf = io.StringIO()
@@ -59,18 +61,22 @@ def prepare_batch_request(requests):
 
 
 def make_response(data):
-    try:
-        wrap, header, content = data.split(b"\n\n")
-    except ValueError:
-        return data
+    wrap, header, content = data.split(b"\r\n\r\n")
     response = Response()
-    response._content, _ = content.split(b'\n', 1)
-    status, headers = header.split(b'\n', 1)
+    response._content, _ = content.split(b'\r\n', 1)
+    status, headers = header.split(b'\r\n', 1)
     _, code, reason = status.split()
     response.code = reason
     response.error_type = reason
     response.status_code = int(code)
     return response
+
+
+def decode_batch_response(resp):
+    content_type = resp.headers["Content-Type"]
+    datas = parse_multi(content_type, resp.content)
+    responses = [make_response(d).json() for d in datas]
+    return responses
 
 
 def do():

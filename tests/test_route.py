@@ -23,7 +23,7 @@ def test_store(app):
     assert r.get_json()["is_cat"] == "such"
 
 
-def test_batch_put_request(app, raw_req):
+def test_batch_patch_request(app, raw_req):
     path, method, headers, body = raw_req
     client = app.test_client()
     r = client.open(path, method=method, data=body, headers=headers)

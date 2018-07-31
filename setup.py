@@ -41,7 +41,8 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-init_py = read_file('flask_batch.py')
+init_path = os.path.join('flask_batch', '__init__.py')
+init_py = read_file(init_path)
 metadata = get_metadata(init_py)
 
 
