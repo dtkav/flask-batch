@@ -57,7 +57,7 @@ setup(
     packages=find_packages(include=('flask_batch*',)),
     install_requires=[
         "six",
-        "dtkav-werkzeug-raw",
+        "werkzeug-raw",
         "flask",
     ],
     tests_require=[

@@ -1,7 +1,6 @@
 #!/usr/bin/env ipython
 import os
 import requests
-import json
 from google.oauth2.service_account import Credentials
 from flask_batch.client import prepare_batch_request, decode_batch_response
 
@@ -34,8 +33,18 @@ url = "https://www.googleapis.com/batch/storage/v1/"
 headers = {"Content-Type": "application/json"}
 
 to_batch = [
-    ("PATCH", "/storage/v1/b/flask_batch/o/favi.ico", headers, {"metadata": {"type": "tabby"}}),
-    ("PATCH", "/storage/v1/b/flask_batch/o/favi.ico", headers, {"metadata": {"type": "tuxedo"}})
+    (
+        "PATCH",
+        "/storage/v1/b/flask_batch/o/favi.ico",
+        headers,
+        {"metadata": {"type": "tabby"}}
+    ),
+    (
+        "PATCH",
+        "/storage/v1/b/flask_batch/o/favi.ico",
+        headers,
+        {"metadata": {"type": "tuxedo"}}
+    )
 ]
 
 headers, data = prepare_batch_request(to_batch)

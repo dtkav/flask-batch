@@ -1,4 +1,4 @@
-import dtkav_werkzeug_raw as werkzeug_raw
+import werkzeug_raw
 import json
 import six
 

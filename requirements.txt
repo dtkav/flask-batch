@@ -1,3 +1,3 @@
-pathlib
-dtkav_werkzeug_raw
+pathlib==1.0.1
+werkzeug_raw==0.0.2
 
