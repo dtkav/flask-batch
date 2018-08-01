@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
-from flask_batch import BatchRoute
+from flask_batch import add_batch_route
 
 app = Flask(__name__)
-br = BatchRoute(app)
+add_batch_route(app)
 
 state = {"alice": "hello"}
 
