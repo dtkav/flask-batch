@@ -2,6 +2,7 @@ import werkzeug_raw
 import json
 import six
 
+from email._policybase import Compat32
 from email.encoders import encode_noop
 from email.generator import Generator
 from email.mime.application import MIMEApplication
@@ -10,6 +11,10 @@ from flask import request, abort, current_app
 
 HEADERS = {"Content-Type": "application/json"}
 CRLF = '\r\n'
+
+
+class BatchPolicy(Compat32):
+    linesep = CRLF
 
 
 class MIMEApplicationHTTPRequest(MIMEApplication, object):
@@ -46,12 +51,12 @@ class MIMEApplicationHTTPResponse(MIMEApplication, object):
         lines.append(body)
         response = CRLF.join(lines)
         super(MIMEApplicationHTTPResponse, self).__init__(
-            response, 'http', encode_noop
+            response, 'http', encode_noop, policy=BatchPolicy()
         )
 
 
 def strip_headers(bb):
-    return bb.split(b'\n\n', 1)[1]
+    return bb.split(b'\r\n\r\n', 1)[1]
 
 
 def parse_multi(content_type, multi):
@@ -59,12 +64,11 @@ def parse_multi(content_type, multi):
     payloads = multi.split(boundary)[1:-1]
     return [strip_headers(payload) for payload in payloads]
 
-
 def prepare_batch_response(responses):
     if len(responses) == 0:
         raise ValueError("Provide at least one response")
 
-    batch = MIMEMultipart()
+    batch = MIMEMultipart(policy=BatchPolicy())
 
     for status, headers, body in responses:
         subrequest = MIMEApplicationHTTPResponse(
@@ -77,7 +81,7 @@ def prepare_batch_response(responses):
     payload = buf.getvalue()
 
     # Strip off redundant header text
-    _, body = payload.split('\n\n', 1)
+    _, body = payload.split('\r\n\r\n', 1)
     return dict(batch._headers), body
 
 

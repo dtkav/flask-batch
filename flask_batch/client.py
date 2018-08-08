@@ -1,52 +1,98 @@
 #!/usr/bin/env python
 
+import collections
 import requests
 import io
 
 from email.generator import Generator
 from email.mime.multipart import MIMEMultipart
-from flask_batch.flask_batch import parse_multi, MIMEApplicationHTTPRequest
+from flask_batch.flask_batch import parse_multi, MIMEApplicationHTTPRequest, BatchPolicy
 from requests.models import Response
 from requests import Session
 
 
-# ideal usage is something like
-# with Batching():
-#     res = []
-#     for a in many:
-#         res.append(requests.post(a.url, headers=a.headers, data=a.data))
-#
-# res = [...]
+class _FutureDict(collections.abc.Mapping):
+    err = ValueError("Complete batching request before accessing result")
+
+    def __init__(self, future, *args, **kwargs):
+        self._future = future  # somehow ensure same request/response pair
+        super(_FutureDict, self).__init__(*args, **kwargs)
+
+    def __getitem__(self):
+        raise self.err
+
+    def __iter__(self):
+        raise self.err
+
+    def __len__(self):
+        raise self.err
+
+
+class _FutureResponse(requests.Response):
+    def __init__(self, future_dict):
+        super(_FutureResponse, self).__init__()
+        self._future_dict = future_dict
+        self.status_code = 204
+
+    def json(self):
+        return self._future_dict
+
+    @property
+    def content(self):
+        return self._future_dict
+
 
 class Batching(Session):
 
-    def __init__(self):
-        self._batched_requests = []
+    def __init__(self, batch_url):
+        self._futures = []
+        self._requests = []
+        self._batch_url = batch_url
         super(Batching, self).__init__()
 
     def send(self, request, **kwargs):
-        self._batched_requests.append(request)
-        return  # something
+        fd = _FutureDict(request)
+        fr = _FutureResponse(fd)
+        self._futures.append(fr)
+        self._requests.append(request)
+        return fr
 
     def __exit__(self, *args):
         self.finalize()
         self.close()
 
+    def before_request(self):
+        pass
+
+    def after_response(self):
+        pass
+
     def finalize(self):
-        headers, body = prepare_batch_request(self._batched_requests)
-        import ipdb
-        ipdb.set_trace()
-        # actually send request
-        # match responses with responses
+        headers, data = prepare_batch_request(self._requests)
+        self._request_headers = headers
+        self._request_data = data
+        self.before_request()
+        resp = requests.post(self._batch_url, data=data, headers=headers)
+        self._response = resp
+        self.after_response()
+        resp.raise_for_status()
+        decoded = decode_batch_response(resp)
+        for f, r in zip(self._futures, decoded):
+            f._future_dict = r.json()
+            f.status_code = r.status_code
 
 
 def prepare_batch_request(requests):
     if len(requests) == 0:
         raise ValueError("No deferred requests")
 
-    batch = MIMEMultipart()
+    batch = MIMEMultipart(policy=BatchPolicy())
 
-    for method, uri, headers, body in requests:
+    for request in requests:
+        method = request.method
+        uri = request.url
+        headers = request.headers
+        body = request.body
         subrequest = MIMEApplicationHTTPRequest(method, uri, headers, body)
         batch.attach(subrequest)
 
@@ -56,14 +102,14 @@ def prepare_batch_request(requests):
     payload = buf.getvalue()
 
     # Strip off redundant header text
-    _, body = payload.split('\n\n', 1)
+    _, body = payload.split('\r\n\r\n', 1)
     return dict(batch._headers), body
 
 
 def make_response(data):
-    wrap, header, content = data.split(b"\r\n\r\n")
+    header, content = data.split(b"\r\n\r\n", 1)
     response = Response()
-    response._content, _ = content.split(b'\r\n', 1)
+    response._content, _ = content.rsplit(b'\r\n', 1)
     status, headers = header.split(b'\r\n', 1)
     _, code, reason = status.split()
     response.code = reason
@@ -75,27 +121,5 @@ def make_response(data):
 def decode_batch_response(resp):
     content_type = resp.headers["Content-Type"]
     datas = parse_multi(content_type, resp.content)
-    responses = [make_response(d).json() for d in datas]
+    responses = [make_response(d) for d in datas]
     return responses
-
-
-def do():
-    headers = {}
-    requests = [
-        ("PATCH", "/cat/alice", headers, {"metadata": {"type": "tabby"}}),
-        ("PATCH", "/cat/bob", headers, {"metadata": {"type": "tuxedo"}})
-    ]
-    return prepare_batch_request(requests)
-
-
-if __name__ == "__main__":
-    headers, body = do()
-    resp = requests.post(
-        "http://127.0.0.1:5000/batch",
-        headers=headers,
-        data=body
-    )
-    content_type = resp.headers["Content-Type"]
-    datas = parse_multi(content_type, resp.content)
-    responses = [make_response(d).json() for d in datas[:-1]]
-    print(responses)
