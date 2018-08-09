@@ -9,7 +9,7 @@ def main(filename, port):
     s.connect(("localhost", port))
 
     with open(filename, "rb") as f:
-        s.send(f.read())
+        s.sendall(f.read())
         s.close()
 
 
