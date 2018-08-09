@@ -5,11 +5,35 @@ Flask-Batch is inpsired by [how google cloud storage does batching](https://clou
 It adds a `/batch` route to your API which can execute batched HTTP requests against your
 API server side. The client wraps several requests in a single request using the `multipart/mixed` content type.
 
-![](sequence-diagram.svg)
+# Getting Started
+## Server
+```
+from flask import Flask
+from flask_batch import add_batch_route
+
+app = Flask(__name__)
+add_batch_route(app)
+
+# that's it!
+```
+
+## Client
+The client wraps a requests session.
+```
+from flask_batch.client import Batching
+
+with Batching("http://localhost:5000/batch") as s:
+    alice_resp = s.patch("http://localhost:5000/people/alice/", headers=headers, data=alice_data)
+    bob_resp = s.patch("http://localhost:5000/people/bob/", headers=headers, data=bob_data)
+
+alice         # <Response [200]>
+alice.json()  # {"example": "json"}
+```
 
 # Why Batch?
 Often the round-trip-time from a client to a server is high.
 Batching requests reduces the penalty of a high RTT, without the added complexity of request parallelization.
+![](sequence-diagram.svg)
 
 # Batching Done Right
 Often API designers will create custom batch endpoints for specific operations.
