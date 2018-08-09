@@ -1,10 +1,14 @@
 import pytest
-import pathlib
 from flask_batch import add_batch_route
 from flask import Flask, jsonify, request, abort
 
+try:
+    from pathlib import Path
+    Path().expanduser()
+except (ImportError,AttributeError):
+    from pathlib2 import Path
 
-TEST_PACKET = pathlib.Path(__file__).parent / 'packet'
+TEST_PACKET = Path(__file__).parent / 'packet'
 
 
 @pytest.fixture
@@ -30,6 +34,7 @@ def app():
         state.update({cat: request.json})
         return jsonify(state.get(cat))
 
+    flask_app.debug = True
     return flask_app
 
 
@@ -37,7 +42,7 @@ def app():
 def raw_req():
     with open(str(TEST_PACKET), 'rb') as f:
         packet = f.read()
-    head_raw, body = packet.split(b'\r\n\r\n')
+    head_raw, body = packet.split(b'\r\n\r\n', 1)
     req_line, headers = head_raw.split(b'\r\n', 1)
     headers = dict([
         header.split(": ", 1)
