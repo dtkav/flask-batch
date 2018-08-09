@@ -18,6 +18,7 @@ accept: application/json
 content-length: 31
 
 {"metadata": {"type": "tabby"}}
+
 --===============7330845974216740156==
 Content-Type: application/http
 Content-Transfer-Encoding: binary
@@ -29,4 +30,5 @@ accept: application/json
 content-length: 32
 
 {"metadata": {"type": "tuxedo"}}
---===============7330845974216740156==
+
+--===============7330845974216740156==
