@@ -1,20 +1,15 @@
 import werkzeug_raw
 import json
 import six
+from .polyfill import HTTPGenerator
 
-from email._policybase import Compat32
 from email.encoders import encode_noop
-from email.generator import Generator
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from flask import request, abort, current_app
 
 HEADERS = {"Content-Type": "application/json"}
 CRLF = '\r\n'
-
-
-class BatchPolicy(Compat32):
-    linesep = CRLF
 
 
 class MIMEApplicationHTTPRequest(MIMEApplication, object):
@@ -51,13 +46,11 @@ class MIMEApplicationHTTPResponse(MIMEApplication, object):
         lines.append(body)
         response = CRLF.join(lines)
         super(MIMEApplicationHTTPResponse, self).__init__(
-            response, 'http', encode_noop, policy=BatchPolicy()
+            response, 'http', encode_noop
         )
-
 
 def strip_headers(bb):
     return bb.split(b'\r\n\r\n', 1)[1]
-
 
 def parse_multi(content_type, multi):
     boundary = content_type.split("=", 1)[1][1:-1].encode("ascii")
@@ -68,7 +61,7 @@ def prepare_batch_response(responses):
     if len(responses) == 0:
         raise ValueError("Provide at least one response")
 
-    batch = MIMEMultipart(policy=BatchPolicy())
+    batch = MIMEMultipart()
 
     for status, headers, body in responses:
         subrequest = MIMEApplicationHTTPResponse(
@@ -76,7 +69,7 @@ def prepare_batch_response(responses):
         batch.attach(subrequest)
 
     buf = six.StringIO()
-    generator = Generator(buf, False, 0)
+    generator = HTTPGenerator(buf, False, 0)
     generator.flatten(batch)
     payload = buf.getvalue()
 

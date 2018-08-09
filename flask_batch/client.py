@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 
-import collections
+try:
+    import collections.abc as collections_abc
+except ImportError:
+    import collections as collections_abc
+
 import requests
 import io
+import six
 
-from email.generator import Generator
 from email.mime.multipart import MIMEMultipart
-from flask_batch.flask_batch import parse_multi, MIMEApplicationHTTPRequest, BatchPolicy
+from .flask_batch import parse_multi, MIMEApplicationHTTPRequest
+from .polyfill import HTTPGenerator
 from requests.models import Response
 from requests import Session
 
 
-class _FutureDict(collections.abc.Mapping):
+class _FutureDict(collections_abc.Mapping):
     err = ValueError("Complete batching request before accessing result")
 
     def __init__(self, future, *args, **kwargs):
@@ -86,7 +91,7 @@ def prepare_batch_request(requests):
     if len(requests) == 0:
         raise ValueError("No deferred requests")
 
-    batch = MIMEMultipart(policy=BatchPolicy())
+    batch = MIMEMultipart()
 
     for request in requests:
         method = request.method
@@ -96,8 +101,8 @@ def prepare_batch_request(requests):
         subrequest = MIMEApplicationHTTPRequest(method, uri, headers, body)
         batch.attach(subrequest)
 
-    buf = io.StringIO()
-    generator = Generator(buf, False, 0)
+    buf = six.BytesIO()
+    generator = HTTPGenerator(buf, False, 0)
     generator.flatten(batch)
     payload = buf.getvalue()
 
@@ -120,6 +125,5 @@ def make_response(data):
 
 def decode_batch_response(resp):
     content_type = resp.headers["Content-Type"]
-    datas = parse_multi(content_type, resp.content)
-    responses = [make_response(d) for d in datas]
-    return responses
+    messages = parse_multi(content_type, resp.content)
+    return [make_response(m) for m in messages]
