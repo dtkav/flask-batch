@@ -7,7 +7,7 @@ API server side. The client wraps several requests in a single request using the
 
 # Getting Started
 ## Server
-```
+```python
 from flask import Flask
 from flask_batch import add_batch_route
 
@@ -19,7 +19,7 @@ add_batch_route(app)
 
 ## Client
 The client wraps a requests session.
-```
+```python
 from flask_batch.client import Batching
 
 with Batching("http://localhost:5000/batch") as s:
@@ -33,6 +33,8 @@ alice.json()  # {"example": "json"}
 # Why Batch?
 Often the round-trip-time from a client to a server is high.
 Batching requests reduces the penalty of a high RTT, without the added complexity of request parallelization.
+
+
 ![](sequence-diagram.svg)
 
 # Batching Done Right
