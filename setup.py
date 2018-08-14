@@ -47,13 +47,13 @@ metadata = get_metadata(init_py)
 
 
 setup(
-    name='flask-batch',
+    name='Flask-Batch',
     version=metadata['version'],
     author=metadata['author'],
     author_email=metadata['email'],
     url=metadata['url'],
     license=metadata['license'],
-    long_description=read_file('README.md'),
+    long_description=read_file('README.rst'),
     packages=find_packages(include=('flask_batch*',)),
     install_requires=[
         "six",
