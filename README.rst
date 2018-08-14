@@ -79,5 +79,5 @@ as a flask extension.
    :target: https://travis-ci.org/dtkav/flask-batch/
 .. |GitHub license| image:: https://img.shields.io/github/license/dtkav/flask-batch.svg
    :target: https://github.com/dtkav/flask-batch/blob/master/LICENSE
-.. |Latest Version| image:: https://img.shields.io/pypi/v/connexion.svg
-   :target: https://pypi.python.org/pypi/connexion
+.. |Latest Version| image:: https://img.shields.io/pypi/v/flask-batch.svg
+   :target: https://pypi.python.org/pypi/flask-batch
