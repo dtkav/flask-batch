@@ -6,7 +6,6 @@ except ImportError:
     import collections as collections_abc
 
 import requests
-import io
 import six
 
 from email.mime.multipart import MIMEMultipart

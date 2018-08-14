@@ -28,8 +28,12 @@ class GBatching(Batching):
         super(GBatching, self).__init__(*args, **kwargs)
 
     def before_request(self):
-        self._creds.before_request(gRequest(), "POST", self._batch_url, self._request_headers)
-
+        self._creds.before_request(
+            gRequest(),
+            "POST",
+            self._batch_url,
+            self._request_headers
+        )
 
 
 scopes = ('https://www.googleapis.com/auth/devstorage.full_control',

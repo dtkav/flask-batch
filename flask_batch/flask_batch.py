@@ -49,13 +49,16 @@ class MIMEApplicationHTTPResponse(MIMEApplication, object):
             response, 'http', encode_noop
         )
 
+
 def strip_headers(bb):
     return bb.split(b'\r\n\r\n', 1)[1]
+
 
 def parse_multi(content_type, multi):
     boundary = content_type.split("=", 1)[1][1:-1].encode("ascii")
     payloads = multi.split(boundary)[1:-1]
     return [strip_headers(payload) for payload in payloads]
+
 
 def prepare_batch_response(responses):
     if len(responses) == 0:
