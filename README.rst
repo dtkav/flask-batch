@@ -1,7 +1,7 @@
-Flask-Batch (alpha)
-===================
+Flask-Batch
+===========
 
-|Travis CI build status| |GitHub license|
+|Travis CI build status| |GitHub license| |Latest Version|
 
 *Batch multiple requests at the http layer.* Flask-Batch is inpsired by
 `how google cloud storage does
@@ -79,3 +79,5 @@ as a flask extension.
    :target: https://travis-ci.org/dtkav/flask-batch/
 .. |GitHub license| image:: https://img.shields.io/github/license/dtkav/flask-batch.svg
    :target: https://github.com/dtkav/flask-batch/blob/master/LICENSE
+.. |Latest Version| image:: https://img.shields.io/pypi/v/connexion.svg
+   :target: https://pypi.python.org/pypi/connexion
