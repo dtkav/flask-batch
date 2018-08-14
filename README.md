@@ -1,7 +1,7 @@
+# Flask-Batch (alpha)
 [![Travis CI build status](https://api.travis-ci.org/dtkav/flask-batch.svg?branch=master)](https://travis-ci.org/dtkav/flask-batch/)
 [![GitHub license](https://img.shields.io/github/license/dtkav/flask-batch.svg)](https://github.com/dtkav/flask-batch/blob/master/LICENSE)
 
-# Flask-Batch (alpha)
 _Batch multiple requests at the http layer._
 Flask-Batch is inpsired by [how google cloud storage does batching](https://cloud.google.com/storage/docs/json_api/v1/how-tos/batch).
 
