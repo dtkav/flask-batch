@@ -4,6 +4,8 @@
 # It has been slightly modified to support HTTP
 # compliant newline characters (\r\n) in python 2.7
 
+import six
+
 from email.header import Header as OldHeader
 from email.header import _max_append
 from email.generator import Generator
@@ -63,7 +65,7 @@ class HTTPGenerator(Generator):
         subparts = msg.get_payload()
         if subparts is None:
             subparts = []
-        elif isinstance(subparts, basestring):
+        elif isinstance(subparts, six.string_types):
             # e.g. a non-strict parse of a message with no starting boundary.
             self._fp.write(subparts)
             return
