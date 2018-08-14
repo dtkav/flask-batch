@@ -1,3 +1,4 @@
+[![Travis CI build status](https://api.travis-ci.org/dtkav/flask-batch.svg?branch=master)](https://travis-ci.org/dtkav/flask-batch/)
 [![GitHub license](https://img.shields.io/github/license/dtkav/flask-batch.svg)](https://github.com/dtkav/flask-batch/blob/master/LICENSE)
 
 # Flask-Batch (alpha)
