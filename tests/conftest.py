@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request, abort
 try:
     from pathlib import Path
     Path().expanduser()
-except (ImportError,AttributeError):
+except (ImportError, AttributeError):
     from pathlib2 import Path
 
 TEST_PACKET = Path(__file__).parent / 'packet'
