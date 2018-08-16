@@ -11,6 +11,15 @@ It adds a ``/batch`` route to your API which can execute batched HTTP
 requests against your API server side. The client wraps several requests
 in a single request using the ``multipart/mixed`` content type.
 
+
+Installation
+============
+
+.. code:: bash
+
+    pip install Flask-Batch
+
+
 Getting Started
 ===============
 
