@@ -44,10 +44,13 @@ The client wraps a requests session.
 .. code:: python
 
     from flask_batch.client import Batching
+    import json
+
+    alice_data = bob_data = json.dumps({"example": "json"})
 
     with Batching("http://localhost:5000/batch") as s:
-        alice_resp = s.patch("http://localhost:5000/people/alice/", headers=headers, data=alice_data)
-        bob_resp = s.patch("http://localhost:5000/people/bob/", headers=headers, data=bob_data)
+        alice = s.patch("http://localhost:5000/people/alice/", headers=headers, data=alice_data)
+        bob = s.patch("http://localhost:5000/people/bob/", headers=headers, data=bob_data)
 
     alice         # <Response [200]>
     alice.json()  # {"example": "json"}
