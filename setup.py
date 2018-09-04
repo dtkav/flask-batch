@@ -28,7 +28,6 @@ class PyTest(TestCommand):
         self.test_args = [
             '-sv',
             '--pep8',
-            '--flakes',
             '--cov', 'flask_batch',
             '--cov-report', 'term-missing',
         ]
