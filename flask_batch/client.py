@@ -124,7 +124,7 @@ def prepare_batch_request(requests):
     return dict(batch._headers), body
 
 
-def make_response(data):
+def make_response(content_id, data):
     header, content = data.split(b"\r\n\r\n", 1)
     response = Response()
     response._content, _ = content.rsplit(b'\r\n', 1)
@@ -133,10 +133,11 @@ def make_response(data):
     response.code = reason
     response.error_type = reason
     response.status_code = int(code)
+    response.content_id = content_id
     return response
 
 
 def decode_batch_response(resp):
     content_type = resp.headers["Content-Type"]
     messages = parse_multi(content_type, resp.content)
-    return [make_response(m) for m in messages]
+    return [make_response(content_id, m) for content_id, m in messages]

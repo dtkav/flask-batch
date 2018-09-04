@@ -51,7 +51,15 @@ class MIMEApplicationHTTPResponse(MIMEApplication, object):
 
 
 def strip_headers(bb):
-    return bb.split(b'\r\n\r\n', 1)[1]
+    headers, body = bb.split(b'\r\n\r\n', 1)
+    headers = headers.replace(b"\r", b"").split(b"\n")
+    content_id = None
+    for h in headers:
+        if h.lower().startswith(b"content-id"):
+            _, content_id = h.split(b":")
+            content_id = content_id.strip()
+
+    return content_id, body
 
 
 def parse_multi(content_type, multi):
@@ -94,7 +102,7 @@ def batch():
         abort(400)
 
     multi = parse_multi(content_type, data)
-    for payload in multi:
+    for content_id, payload in multi:
         environ = werkzeug_raw.environ(payload)
 
         # ensure we only issue requests against the same host
@@ -117,6 +125,8 @@ def batch():
 
             response = app.make_response(rv)
             response = app.process_response(response)
+            if content_id:
+                response.headers.extend({"Content-ID": content_id})
 
         responses.append((
             response.status,
