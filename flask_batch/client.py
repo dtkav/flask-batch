@@ -114,7 +114,7 @@ def prepare_batch_request(requests):
         subrequest = MIMEApplicationHTTPRequest(method, uri, headers, body)
         batch.attach(subrequest)
 
-    buf = six.BytesIO()
+    buf = six.StringIO()
     generator = HTTPGenerator(buf, False, 0)
     generator.flatten(batch)
     payload = buf.getvalue()
