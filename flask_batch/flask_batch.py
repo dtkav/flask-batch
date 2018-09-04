@@ -101,6 +101,10 @@ def batch():
         # as the original request
         environ.update({"SERVER_NAME": request.environ["SERVER_NAME"]})
         environ.update({"SERVER_PORT": request.environ["SERVER_PORT"]})
+        environ.update({"HTTP_HOST": request.environ["HTTP_HOST"]})
+
+        # if we don't have content-length
+        environ.update({"wsgi.input_terminated": 1})
 
         with app.request_context(environ):
             try:
