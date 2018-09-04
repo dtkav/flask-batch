@@ -19,6 +19,9 @@ Installation
 
     pip install Flask-Batch
 
+    # to include the dependencies for the batching client
+    pip install Flask-Batch[client]
+
 
 Getting Started
 ===============

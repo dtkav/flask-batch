@@ -44,6 +44,9 @@ init_path = os.path.join('flask_batch', '__init__.py')
 init_py = read_file(init_path)
 metadata = get_metadata(init_py)
 
+client_requires = [
+    'requests'
+]
 
 setup(
     name='Flask-Batch',
@@ -67,6 +70,9 @@ setup(
         "pytest-cov",
         "tox",
     ],
+    extras_require={
+        'client': client_requires
+    },
     cmdclass={'test': PyTest},
     classifiers=[
         "Development Status :: 4 - Beta",
