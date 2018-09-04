@@ -62,8 +62,15 @@ def strip_headers(bb):
     return content_id, body
 
 
+def unquote(s):
+    s = s[1:] if s.startswith(b'"') else s
+    s = s[:-1] if s.endswith(b'"') else s
+    return s
+
+
 def parse_multi(content_type, multi):
-    boundary = content_type.split("=", 1)[1][1:-1].encode("ascii")
+    _, boundary_raw = content_type.split("=", 1)
+    boundary = b"--" + unquote(boundary_raw.encode("ascii"))
     payloads = multi.split(boundary)[1:-1]
     return [strip_headers(payload) for payload in payloads]
 
