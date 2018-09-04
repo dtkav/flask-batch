@@ -115,7 +115,7 @@ def make_response(data):
     response = Response()
     response._content, _ = content.rsplit(b'\r\n', 1)
     status, headers = header.split(b'\r\n', 1)
-    _, code, reason = status.split()
+    _, code, reason = status.split(b' ', 2)
     response.code = reason
     response.error_type = reason
     response.status_code = int(code)
