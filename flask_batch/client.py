@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from .flask_batch import parse_multi, MIMEApplicationHTTPRequest
 from .polyfill import HTTPGenerator
 from requests.models import Response
+from requests.compat import urlparse, urlunparse
 from requests import Session
 
 
@@ -52,7 +53,20 @@ class Batching(Session):
         self._futures = []
         self._requests = []
         self._batch_url = batch_url
+        self._batch_url_parsed = urlparse(batch_url)
         super(Batching, self).__init__()
+
+    def _prepend_host(self, path):
+        scheme = self._batch_url_parsed.scheme
+        netloc = self._batch_url_parsed.netloc
+        parsed = urlparse(path)
+        return urlunparse((scheme, netloc, parsed.path, parsed.params,
+                           parsed.query, parsed.fragment))
+
+    def prepare_request(self, request):
+        # enforce same scheme, netloc as batch_url
+        request.url = self._prepend_host(request.url)
+        return super(Batching, self).prepare_request(request)
 
     def send(self, request, **kwargs):
         fd = _FutureDict(request)
