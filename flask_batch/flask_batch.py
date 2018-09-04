@@ -19,7 +19,8 @@ class MIMEApplicationHTTPRequest(MIMEApplication, object):
             body = json.dumps(body)
             headers['Content-Type'] = 'application/json'
             headers['Content-Length'] = len(body)
-        body = body or ''
+
+        body = body.decode('utf-8') or ''
         request_line = '{method} {path} HTTP/1.1'
         lines = [request_line.format(method=method, path=path)]
         lines += ['{k}: {v}'.format(k=k, v=v) for k, v in headers.items()]
